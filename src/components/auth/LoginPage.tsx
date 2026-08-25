@@ -14,20 +14,24 @@ export default function LoginPage({ onLoginSuccess }: { onLoginSuccess?: () => v
   const [otpCode, setOtpCode] = useState('');
 
   // Email Password State
-  const [email, setEmail] = useState('admin@turfsplit.com');
-  const [password, setPassword] = useState('admin123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
-  // Sign Up State
+  // Sign Up State (players only)
   const [signUpName, setSignUpName] = useState('');
   const [signUpPhone, setSignUpPhone] = useState('');
   const [signUpEmail, setSignUpEmail] = useState('');
-  const [signUpRole, setSignUpRole] = useState<'PLAYER' | 'ORGANIZER'>('PLAYER');
   const [signUpUpi, setSignUpUpi] = useState('');
-  const [signUpPassword, setSignUpPassword] = useState('admin123');
+  const [signUpPassword, setSignUpPassword] = useState('');
+  const [signUpConfirm, setSignUpConfirm] = useState('');
 
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [infoMsg, setInfoMsg] = useState<string | null>(null);
+
+  // Password visibility toggles
+  const [showLoginPw, setShowLoginPw] = useState(false);
+  const [showSignupPw, setShowSignupPw] = useState(false);
 
   const handleSuccess = () => {
     if (onLoginSuccess) {
@@ -101,11 +105,23 @@ export default function LoginPage({ onLoginSuccess }: { onLoginSuccess?: () => v
     }
   };
 
-  // Sign Up Submit
+  // Sign Up Submit (players only)
   const handleSignUpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!signUpName || (!signUpPhone && !signUpEmail)) {
       setErrorMsg('Full Name and Phone or Email are required');
+      return;
+    }
+    if (!signUpPassword) {
+      setErrorMsg('Please set a password');
+      return;
+    }
+    if (signUpPassword.length < 4) {
+      setErrorMsg('Password must be at least 4 characters');
+      return;
+    }
+    if (signUpPassword !== signUpConfirm) {
+      setErrorMsg('Passwords do not match');
       return;
     }
 
@@ -116,7 +132,7 @@ export default function LoginPage({ onLoginSuccess }: { onLoginSuccess?: () => v
       name: signUpName,
       phone: signUpPhone,
       email: signUpEmail,
-      role: signUpRole,
+      role: 'PLAYER',
       upiId: signUpUpi,
       password: signUpPassword,
     });
@@ -301,13 +317,25 @@ export default function LoginPage({ onLoginSuccess }: { onLoginSuccess?: () => v
               <label className="block font-label-bold text-xs text-on-surface-variant mb-1 font-bold">
                 Password
               </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full bg-surface-container-low border border-outline-variant rounded-xl p-md text-sm text-on-surface focus:outline-primary font-medium"
-              />
+              <div className="relative">
+                <input
+                  type={showLoginPw ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full bg-surface-container-low border border-outline-variant rounded-xl p-md pr-11 text-sm text-on-surface focus:outline-primary font-medium"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowLoginPw((v) => !v)}
+                  aria-label={showLoginPw ? 'Hide password' : 'Show password'}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-on-surface-variant hover:text-primary rounded-full"
+                >
+                  <span className="material-symbols-outlined text-[20px]">
+                    {showLoginPw ? 'visibility_off' : 'visibility'}
+                  </span>
+                </button>
+              </div>
             </div>
 
             <button
@@ -366,47 +394,64 @@ export default function LoginPage({ onLoginSuccess }: { onLoginSuccess?: () => v
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-sm">
-              <div>
-                <label className="block font-label-bold text-xs text-on-surface-variant mb-1 font-bold">
-                  Account Role
-                </label>
-                <select
-                  value={signUpRole}
-                  onChange={(e) => setSignUpRole(e.target.value as any)}
-                  className="w-full bg-surface-container-low border border-outline-variant rounded-xl p-sm text-sm text-on-surface focus:outline-primary font-bold text-primary"
-                >
-                  <option value="PLAYER">Player</option>
-                  <option value="ORGANIZER">Organizer / Admin</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block font-label-bold text-xs text-on-surface-variant mb-1 font-bold">
-                  UPI ID (For payouts)
-                </label>
-                <input
-                  type="text"
-                  value={signUpUpi}
-                  onChange={(e) => setSignUpUpi(e.target.value)}
-                  placeholder="alex@upi"
-                  className="w-full bg-surface-container-low border border-outline-variant rounded-xl p-sm text-sm text-on-surface focus:outline-primary"
-                />
-              </div>
+            <div>
+              <label className="block font-label-bold text-xs text-on-surface-variant mb-1 font-bold">
+                UPI ID (For payouts)
+              </label>
+              <input
+                type="text"
+                value={signUpUpi}
+                onChange={(e) => setSignUpUpi(e.target.value)}
+                placeholder="alex@upi"
+                className="w-full bg-surface-container-low border border-outline-variant rounded-xl p-sm text-sm text-on-surface focus:outline-primary"
+              />
             </div>
 
             <div>
               <label className="block font-label-bold text-xs text-on-surface-variant mb-1 font-bold">
                 Password *
               </label>
+              <div className="relative">
+                <input
+                  type={showSignupPw ? 'text' : 'password'}
+                  value={signUpPassword}
+                  onChange={(e) => setSignUpPassword(e.target.value)}
+                  placeholder="At least 4 characters"
+                  className="w-full bg-surface-container-low border border-outline-variant rounded-xl p-sm pr-11 text-sm text-on-surface focus:outline-primary"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowSignupPw((v) => !v)}
+                  aria-label={showSignupPw ? 'Hide password' : 'Show password'}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-on-surface-variant hover:text-primary rounded-full"
+                >
+                  <span className="material-symbols-outlined text-[20px]">
+                    {showSignupPw ? 'visibility_off' : 'visibility'}
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label className="block font-label-bold text-xs text-on-surface-variant mb-1 font-bold">
+                Confirm Password *
+              </label>
               <input
-                type="password"
-                value={signUpPassword}
-                onChange={(e) => setSignUpPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full bg-surface-container-low border border-outline-variant rounded-xl p-sm text-sm text-on-surface focus:outline-primary"
+                type={showSignupPw ? 'text' : 'password'}
+                value={signUpConfirm}
+                onChange={(e) => setSignUpConfirm(e.target.value)}
+                placeholder="Re-enter your password"
+                className={`w-full bg-surface-container-low border rounded-xl p-sm text-sm text-on-surface focus:outline-primary ${
+                  signUpConfirm && signUpConfirm !== signUpPassword
+                    ? 'border-error'
+                    : 'border-outline-variant'
+                }`}
                 required
               />
+              {signUpConfirm && signUpConfirm !== signUpPassword && (
+                <p className="text-error text-[11px] font-label-bold mt-1">Passwords do not match</p>
+              )}
             </div>
 
             <button

@@ -28,16 +28,15 @@ export default function OrganizerDashboard({
   onSelectGame,
   games = [],
 }: OrganizerDashboardProps) {
-  const totalGames = games.length || 3;
-  const totalPlayers = games.reduce((acc, g) => acc + (g.players?.length || 0), 0) || 32;
+  const totalGames = games.length;
+  const totalPlayers = games.reduce((acc, g) => acc + (g.players?.length || 0), 0);
   // Sum of every unpaid player share across all games
-  const pendingCollection =
-    games.reduce((acc, g) => {
-      const players = g.players || [];
-      const perShare = Math.round((g.totalCost || 0) / Math.max(1, players.length));
-      const unpaid = players.filter((p: any) => p.paymentStatus !== 'PAID');
-      return acc + unpaid.reduce((s: number, p: any) => s + (p.shareAmount || perShare), 0);
-    }, 0) || 2400;
+  const pendingCollection = games.reduce((acc, g) => {
+    const players = g.players || [];
+    const perShare = Math.round((g.totalCost || 0) / Math.max(1, players.length));
+    const unpaid = players.filter((p: any) => p.paymentStatus !== 'PAID');
+    return acc + unpaid.reduce((s: number, p: any) => s + (p.shareAmount || perShare), 0);
+  }, 0);
 
   // Month tabs derived from the games we actually have (ordered by calendar month)
   const monthTabs = useMemo(() => {

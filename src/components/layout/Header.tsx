@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useAuth } from '@/context/AuthContext';
+import { firstLetter, avatarColor } from '@/lib/avatar';
 
 interface HeaderProps {
   currentRole: 'PLAYER' | 'ORGANIZER';
@@ -28,14 +29,13 @@ export default function Header({
         {/* Left: Branding & User Info */}
         <div className="flex items-center gap-3">
           <div className="relative">
-            <img
-              className="w-10 h-10 rounded-full object-cover border-2 border-primary/30 shadow-sm"
-              alt="User avatar"
-              src={
-                user?.avatarUrl ||
-                'https://lh3.googleusercontent.com/aida-public/AB6AXuCa5a-dLFVKOFNIXGHSgxfaerm1V3SaynbjhcWPVLt49ROV_fzipU7Uzl1crf8wqs_3Pi9P3y1lbVWAYCK3Q-YKYGDuWDnBHjipH9LSa5HqgfNheVFf6VMK23HLsqo5pU5IlbupKiN2PKW8CIgOpt5sEqu8rWFWJTqfwfxfUeOjBKDKYnc8nNV6dN9PI1EHZmqNICML4cD9LsxnhpOJEW9ALay1Fi8e1DEUJqO0P5lBLwkNWb3ljpE'
-              }
-            />
+            <div
+              className="w-10 h-10 rounded-full border-2 border-primary/30 shadow-sm flex items-center justify-center text-white font-bold text-base select-none"
+              style={{ backgroundColor: avatarColor(user?.id || user?.name) }}
+              aria-label={user?.name}
+            >
+              {firstLetter(user?.name)}
+            </div>
             {user && (
               <span
                 className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-surface ${

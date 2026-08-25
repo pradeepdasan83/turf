@@ -26,7 +26,7 @@ function TurfSplitApp() {
     totalOwedToUser: number;
     totalUserOwes: number;
     netBalance: number;
-  }>({ totalOwedToUser: 1250, totalUserOwes: 450, netBalance: 800 });
+  }>({ totalOwedToUser: 0, totalUserOwes: 0, netBalance: 0 });
 
   const [toReceiveList, setToReceiveList] = useState<any[]>([]);
   const [toPayList, setToPayList] = useState<any[]>([]);
@@ -340,6 +340,7 @@ function TurfSplitApp() {
             onSendReminders={() => handleSendReminder('usr-vijay', 200, 'Pending Players')}
             games={games}
             balanceData={balanceData}
+            transactions={paymentHistory}
             currentUserId={user.id}
             onOpenCreateGame={() => setIsCreateGameOpen(true)}
           />

@@ -46,7 +46,7 @@ export default function PlayerDashboard({
   onNavigatePayments,
   onSendReminders,
   games = [],
-  balanceData = { totalOwedToUser: 1250, totalUserOwes: 450, netBalance: 800 },
+  balanceData = { totalOwedToUser: 0, totalUserOwes: 0, netBalance: 0 },
   transactions = [],
   currentUserId = '',
   onOpenCreateGame,
@@ -77,36 +77,6 @@ export default function PlayerDashboard({
   const orderedGames = [...shownUpcoming, ...shownCompleted, ...(showAll ? cancelled : [])];
   const hiddenCount =
     upcoming.length + completed.length + cancelled.length - shownUpcoming.length - shownCompleted.length;
-
-  const defaultTransactions = [
-    {
-      id: 'tx-1',
-      title: 'David paid you',
-      subtitle: 'For ABC Football Arena',
-      amount: '+$15.00',
-      time: 'Today',
-      isCredit: true,
-      avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDuMkChPs3yK4CPOlbR_jj-IuxHXL9CoFOZtKmoTcaSUDmEaizio2GJ3MiPuga5pXyloffuZwJmt3tKtv1Gs6Z1X_CHHpJztD5UF37FcupOjEXVLtOUccTb16-7W7AXRKTUxT2aqMLQO2bp_oppRWa7KngDfXUXYLPImQAwgw_gCFAmu-gQZ9_EidbzAkK_jfZt4Lo9_dH-SVmsjgEOWxc8Jod8LZ1JQKpJBksNuofn-XBLkcFmbvQ',
-    },
-    {
-      id: 'tx-2',
-      title: 'You paid Turf Arena',
-      subtitle: 'Booking deposit',
-      amount: '-$50.00',
-      time: 'Yesterday',
-      isCredit: false,
-      icon: 'payments',
-    },
-    {
-      id: 'tx-3',
-      title: 'Sarah paid you',
-      subtitle: 'For Tennis Court',
-      amount: '+$25.00',
-      time: 'Oct 24',
-      isCredit: true,
-      avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD1_va3bIc6VkAVzSuWQ88xFeUjgwSbhb4wAxXkN2nIon3eFMicDc9g_ntTgkjxvcQgwAe8yyEh3uufruaja7rFo6TvkSEToEsxEGaYbhF51dnUVmq1uQMw40T7FSmJOKFG8gSTslwcXmc544fv-A0GNfTvv9hNWvHmMHELFRUHmA-lU6EdF0rf9WnL5gG1uNNdWc-tNeEoUPj9uIw8KFgfk6nQQlIfkWnUNQ1oe5OfN0gVUUN1ROQ',
-    },
-  ];
 
   return (
     <div className="space-y-xl max-w-7xl mx-auto px-margin-mobile md:px-margin-desktop py-lg">
@@ -339,39 +309,47 @@ export default function PlayerDashboard({
           </h2>
         </div>
 
-        <div className="bg-surface-container-lowest rounded-xl shadow-[0px_4px_12px_rgba(9,29,46,0.08)] divide-y divide-surface-variant overflow-hidden border border-outline-variant/20">
-          {defaultTransactions.map((tx) => (
-            <div
-              key={tx.id}
-              onClick={onNavigatePayments}
-              className="p-md flex items-center justify-between hover:bg-surface-bright transition-colors cursor-pointer"
-            >
-              <div className="flex items-center gap-md">
-                <div className="w-10 h-10 rounded-full bg-surface-variant flex items-center justify-center text-on-surface-variant overflow-hidden">
-                  {tx.avatar ? (
-                    <img className="w-full h-full object-cover" alt="User avatar" src={tx.avatar} />
-                  ) : (
-                    <span className="material-symbols-outlined">{tx.icon}</span>
-                  )}
+        {transactions.length === 0 ? (
+          <div className="bg-surface-container-lowest rounded-xl border border-outline-variant/20 p-xl flex flex-col items-center text-center gap-2 shadow-[0px_4px_12px_rgba(9,29,46,0.08)]">
+            <span className="material-symbols-outlined text-4xl text-on-surface-variant/60">receipt_long</span>
+            <p className="font-label-bold text-label-bold text-on-surface-variant">No transactions yet</p>
+            <p className="font-label-sm text-label-sm text-on-surface-variant/80">
+              Your payments and settlements will show up here.
+            </p>
+          </div>
+        ) : (
+          <div className="bg-surface-container-lowest rounded-xl shadow-[0px_4px_12px_rgba(9,29,46,0.08)] divide-y divide-surface-variant overflow-hidden border border-outline-variant/20">
+            {transactions.map((tx: any, i: number) => (
+              <div
+                key={tx.id || i}
+                onClick={onNavigatePayments}
+                className="p-md flex items-center justify-between hover:bg-surface-bright transition-colors cursor-pointer"
+              >
+                <div className="flex items-center gap-md">
+                  <div className="w-10 h-10 rounded-full bg-surface-variant flex items-center justify-center text-on-surface-variant">
+                    <span className="material-symbols-outlined">
+                      {tx.isCredit ? 'call_received' : 'call_made'}
+                    </span>
+                  </div>
+                  <div>
+                    <p className="font-label-bold text-label-bold text-on-background">{tx.title}</p>
+                    <p className="font-label-sm text-label-sm text-on-surface-variant">{tx.subtitle}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="font-label-bold text-label-bold text-on-background">{tx.title}</p>
-                  <p className="font-label-sm text-label-sm text-on-surface-variant">{tx.subtitle}</p>
+                <div className="text-right">
+                  <p
+                    className={`font-label-bold text-label-bold ${
+                      tx.isCredit ? 'text-primary' : 'text-on-background'
+                    }`}
+                  >
+                    {tx.amount}
+                  </p>
+                  <p className="font-label-sm text-label-sm text-on-surface-variant">{tx.time}</p>
                 </div>
               </div>
-              <div className="text-right">
-                <p
-                  className={`font-label-bold text-label-bold ${
-                    tx.isCredit ? 'text-primary' : 'text-on-background'
-                  }`}
-                >
-                  {tx.amount}
-                </p>
-                <p className="font-label-sm text-label-sm text-on-surface-variant">{tx.time}</p>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </section>
     </div>
   );

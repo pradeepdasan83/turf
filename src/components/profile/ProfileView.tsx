@@ -2,9 +2,7 @@
 
 import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
-
-const DEFAULT_AVATAR =
-  'https://lh3.googleusercontent.com/aida-public/AB6AXuCa5a-dLFVKOFNIXGHSgxfaerm1V3SaynbjhcWPVLt49ROV_fzipU7Uzl1crf8wqs_3Pi9P3y1lbVWAYCK3Q-YKYGDuWDnBHjipH9LSa5HqgfNheVFf6VMK23HLsqo5pU5IlbupKiN2PKW8CIgOpt5sEqu8rWFWJTqfwfxfUeOjBKDKYnc8nNV6dN9PI1EHZmqNICML4cD9LsxnhpOJEW9ALay1Fi8e1DEUJqO0P5lBLwkNWb3ljpE';
+import { firstLetter, avatarColor } from '@/lib/avatar';
 
 export default function ProfileView({ onToast }: { onToast?: (msg: string) => void }) {
   const { user, updateProfile, logout } = useAuth();
@@ -86,8 +84,12 @@ export default function ProfileView({ onToast }: { onToast?: (msg: string) => vo
       <div className="relative bg-surface rounded-2xl p-lg border border-outline-variant/30 shadow-sm overflow-hidden">
         <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-r from-primary to-tertiary opacity-90"></div>
         <div className="relative flex flex-col items-center text-center pt-6">
-          <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-surface shadow-md">
-            <img className="w-full h-full object-cover" alt="Profile" src={user.avatarUrl || DEFAULT_AVATAR} />
+          <div
+            className="w-24 h-24 rounded-full border-4 border-surface shadow-md flex items-center justify-center text-white font-extrabold text-4xl select-none"
+            style={{ backgroundColor: avatarColor(user.id || user.name) }}
+            aria-label={user.name}
+          >
+            {firstLetter(user.name)}
           </div>
           <h2 className="font-headline-md text-headline-md font-bold text-on-background mt-sm">{user.name}</h2>
           <span className="mt-1 inline-flex items-center gap-1 bg-primary-container text-on-primary-container font-label-sm text-label-sm px-3 py-1 rounded-full font-bold">
