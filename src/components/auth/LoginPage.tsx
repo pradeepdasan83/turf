@@ -307,7 +307,7 @@ export default function LoginPage({ onLoginSuccess }: { onLoginSuccess?: () => v
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@turfsplit.com or player@turfsplit.com"
+                placeholder="you@example.com"
                 className="w-full bg-surface-container-low border border-outline-variant rounded-xl p-md text-sm text-on-surface focus:outline-primary font-medium"
                 required
               />
@@ -374,7 +374,7 @@ export default function LoginPage({ onLoginSuccess }: { onLoginSuccess?: () => v
                   type="text"
                   value={signUpPhone}
                   onChange={(e) => setSignUpPhone(e.target.value)}
-                  placeholder="9876543210"
+                  placeholder="10-digit mobile"
                   className="w-full bg-surface-container-low border border-outline-variant rounded-xl p-sm text-sm text-on-surface focus:outline-primary"
                   required
                 />
