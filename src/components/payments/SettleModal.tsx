@@ -25,6 +25,24 @@ export default function SettleModal({
 }: SettleModalProps) {
   const [marking, setMarking] = useState(false);
   const [opened, setOpened] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const copyUpi = async () => {
+    if (!payeeUpi) return;
+    try {
+      await navigator.clipboard.writeText(payeeUpi.trim());
+    } catch {
+      // Fallback for older browsers
+      const t = document.createElement('textarea');
+      t.value = payeeUpi.trim();
+      document.body.appendChild(t);
+      t.select();
+      try { document.execCommand('copy'); } catch {}
+      document.body.removeChild(t);
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const note = 'TurfSplit settlement';
   const hasUpi = !!payeeUpi && payeeUpi.trim().length > 0;
@@ -93,10 +111,15 @@ export default function SettleModal({
           <p className="font-headline-md text-headline-md font-bold">{payeeName}</p>
           <div className="font-display-lg text-display-lg font-extrabold mt-1">₹{amount.toLocaleString()}</div>
           {hasUpi && (
-            <p className="font-label-sm text-label-sm opacity-90 mt-1 flex items-center justify-center gap-1">
-              <span className="material-symbols-outlined text-[16px]">account_balance</span>
-              {payeeUpi}
-            </p>
+            <button
+              onClick={copyUpi}
+              className="mt-2 inline-flex items-center gap-1.5 bg-white/20 hover:bg-white/30 transition-colors rounded-full px-3 py-1 font-label-sm text-label-sm"
+            >
+              <span className="material-symbols-outlined text-[16px]">
+                {copied ? 'check' : 'content_copy'}
+              </span>
+              {copied ? 'Copied!' : payeeUpi}
+            </button>
           )}
         </div>
 
@@ -118,21 +141,26 @@ export default function SettleModal({
               Pay with another UPI app
             </button>
 
-            {/* Fallback that mirrors a direct payment: no amount prefilled, so the
-                user types ₹{amount} — avoids the new-payee "link" limit on some banks. */}
-            <button
-              onClick={() => openUpi('tez', false)}
-              className="w-full text-primary font-label-bold text-label-sm py-2 rounded-xl hover:bg-primary-container/15 transition-all flex items-center justify-center gap-1"
-            >
-              <span className="material-symbols-outlined text-[18px]">open_in_new</span>
-              Trouble paying? Open GPay &amp; enter ₹{amount} manually
-            </button>
           </div>
 
-          <p className="text-[11px] text-on-surface-variant text-center mt-2 leading-snug">
-            If a payment is blocked with a bank-limit error, it&apos;s a first-time-payee limit —
-            use &quot;enter manually&quot; above, or retry after a bit.
-          </p>
+          {/* Most reliable path: copy the UPI ID and pay directly in your UPI app.
+              Works even when in-app deep links are blocked (iOS / bank limits). */}
+          <div className="mt-md pt-md border-t border-outline-variant/30">
+            <button
+              onClick={copyUpi}
+              className="w-full bg-tertiary-container text-on-tertiary-container font-label-bold py-3 rounded-xl hover:brightness-95 transition-all active:scale-95 flex items-center justify-center gap-2 font-bold"
+            >
+              <span className="material-symbols-outlined text-[20px]">
+                {copied ? 'check_circle' : 'content_copy'}
+              </span>
+              {copied ? 'UPI ID copied!' : 'Copy UPI ID & pay in your app'}
+            </button>
+            <p className="text-[11px] text-on-surface-variant text-center mt-2 leading-snug">
+              Payment blocked with a &quot;bank limit&quot; error? That&apos;s your bank&apos;s daily
+              UPI limit (hits even ₹1). Copy the UPI ID above and pay directly in GPay/PhonePe,
+              or try again later.
+            </p>
+          </div>
           </>
         ) : (
           <div className="bg-error-container text-on-error-container rounded-xl p-md flex items-start gap-2 text-label-sm font-label-bold">
