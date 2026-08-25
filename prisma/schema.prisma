@@ -1,0 +1,134 @@
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String       @id @default(uuid())
+  name         String
+  phone        String?      @unique
+  email        String?      @unique
+  password     String       @default("password123")
+  avatarUrl    String?
+  upiId        String?
+  role         String       @default("PLAYER") // ORGANIZER, PLAYER, BOTH
+  createdAt    DateTime     @default(now())
+
+  organizedBookings Booking[]
+  organizedGames    Game[]
+  gamePlayers       GamePlayer[]
+  paidLedgers       LedgerEntry[] @relation("FromUser")
+  receivedLedgers   LedgerEntry[] @relation("ToUser")
+  notifications     Notification[]
+}
+
+model Turf {
+  id         String    @id @default(uuid())
+  name       String
+  location   String
+  sport      String    @default("Football")
+  hourlyRate Float
+  imageUrl   String?
+  contact    String?
+  createdAt  DateTime  @default(now())
+
+  bookings   Booking[]
+  games      Game[]
+}
+
+model Booking {
+  id          String   @id @default(uuid())
+  organizerId String
+  turfId      String
+  date        String
+  startTime   String
+  endTime     String
+  cost        Float
+  status      String   @default("CONFIRMED")
+  isRecurring Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  organizer   User     @relation(fields: [organizerId], references: [id])
+  turf        Turf     @relation(fields: [turfId], references: [id])
+  games       Game[]
+}
+
+model Game {
+  id          String   @id @default(uuid())
+  bookingId   String?
+  organizerId String
+  turfId      String
+  title       String
+  sport       String   @default("Football")
+  date        String
+  startTime   String
+  endTime     String
+  totalCost   Float
+  maxPlayers  Int      @default(10)
+  status      String   @default("UPCOMING")
+  cutoffHours Int      @default(2)
+  createdAt   DateTime @default(now())
+
+  organizer   User         @relation(fields: [organizerId], references: [id])
+  turf        Turf         @relation(fields: [turfId], references: [id])
+  booking     Booking?     @relation(fields: [bookingId], references: [id])
+  players     GamePlayer[]
+  ledgers     LedgerEntry[]
+}
+
+model GamePlayer {
+  id            String   @id @default(uuid())
+  gameId        String
+  userId        String
+  joinedAt      DateTime @default(now())
+  shareAmount   Float    @default(0)
+  paymentStatus String   @default("PENDING")
+  roleInGame    String   @default("PLAYER")
+
+  game          Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  user          User     @relation(fields: [userId], references: [id])
+}
+
+model LedgerEntry {
+  id                String   @id @default(uuid())
+  gameId            String
+  fromUserId        String
+  toUserId          String
+  amount            Float
+  description       String
+  type              String   @default("PLAYER_SETTLEMENT")
+  status            String   @default("PENDING")
+  razorpayPaymentId String?
+  createdAt         DateTime @default(now())
+
+  game              Game     @relation(fields: [gameId], references: [id])
+  fromUser          User     @relation("FromUser", fields: [fromUserId], references: [id])
+  toUser            User     @relation("ToUser", fields: [toUserId], references: [id])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  title     String
+  message   String
+  type      String   @default("INFO")
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+// One active OTP per phone number (serverless-safe, DB-backed)
+model OtpCode {
+  id        String   @id @default(uuid())
+  phone     String   @unique
+  code      String
+  attempts  Int      @default(0)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
