@@ -30,27 +30,27 @@ export default function SettleModal({
   const hasUpi = !!payeeUpi && payeeUpi.trim().length > 0;
 
   // Build a UPI intent URL. `scheme` targets Google Pay (tez) or any app (upi).
-  // Amount must be a 2-decimal string per the UPI spec; encode each value with
-  // encodeURIComponent so spaces become %20 (not "+") which some banks reject.
-  const buildUpiUrl = (scheme: 'tez' | 'upi') => {
+  // When includeAmount is false we omit `am` so the user types the amount in the
+  // app — this behaves like paying the contact directly and avoids the lower
+  // "new payee via link" limit some banks apply to amount-prefilled intents.
+  const buildUpiUrl = (scheme: 'tez' | 'upi', includeAmount: boolean) => {
     const fields: Record<string, string> = {
       pa: (payeeUpi || '').trim(),
       pn: payeeName || 'Payee',
-      am: amount.toFixed(2),
       cu: 'INR',
-      tn: note,
     };
+    if (includeAmount) fields.am = amount.toFixed(2);
     const query = Object.entries(fields)
       .map(([k, v]) => `${k}=${encodeURIComponent(v)}`)
       .join('&');
     return scheme === 'tez' ? `tez://upi/pay?${query}` : `upi://pay?${query}`;
   };
 
-  const openUpi = (scheme: 'tez' | 'upi') => {
+  const openUpi = (scheme: 'tez' | 'upi', includeAmount = true) => {
     if (!hasUpi) return;
     setOpened(true);
     // Navigating to the UPI scheme hands off to the installed app
-    window.location.href = buildUpiUrl(scheme);
+    window.location.href = buildUpiUrl(scheme, includeAmount);
   };
 
   const markSettled = async () => {
@@ -101,22 +101,39 @@ export default function SettleModal({
         </div>
 
         {hasUpi ? (
+          <>
           <div className="space-y-sm">
             <button
-              onClick={() => openUpi('tez')}
+              onClick={() => openUpi('tez', true)}
               className="w-full bg-primary text-on-primary font-label-bold py-md rounded-xl shadow-md hover:bg-primary-fixed-dim transition-all active:scale-95 flex items-center justify-center gap-2 font-bold"
             >
               <span className="material-symbols-outlined">account_balance_wallet</span>
               Pay ₹{amount} with Google Pay
             </button>
             <button
-              onClick={() => openUpi('upi')}
+              onClick={() => openUpi('upi', true)}
               className="w-full bg-surface-container-high text-on-surface font-label-bold py-3 rounded-xl hover:bg-surface-variant transition-all active:scale-95 flex items-center justify-center gap-2"
             >
               <span className="material-symbols-outlined text-[20px]">qr_code_2</span>
               Pay with another UPI app
             </button>
+
+            {/* Fallback that mirrors a direct payment: no amount prefilled, so the
+                user types ₹{amount} — avoids the new-payee "link" limit on some banks. */}
+            <button
+              onClick={() => openUpi('tez', false)}
+              className="w-full text-primary font-label-bold text-label-sm py-2 rounded-xl hover:bg-primary-container/15 transition-all flex items-center justify-center gap-1"
+            >
+              <span className="material-symbols-outlined text-[18px]">open_in_new</span>
+              Trouble paying? Open GPay &amp; enter ₹{amount} manually
+            </button>
           </div>
+
+          <p className="text-[11px] text-on-surface-variant text-center mt-2 leading-snug">
+            If a payment is blocked with a bank-limit error, it&apos;s a first-time-payee limit —
+            use &quot;enter manually&quot; above, or retry after a bit.
+          </p>
+          </>
         ) : (
           <div className="bg-error-container text-on-error-container rounded-xl p-md flex items-start gap-2 text-label-sm font-label-bold">
             <span className="material-symbols-outlined text-[18px]">info</span>
