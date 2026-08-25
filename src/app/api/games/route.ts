@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { calculateCostSplit } from '@/lib/split-engine';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     const games = await prisma.game.findMany({

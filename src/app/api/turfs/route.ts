@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
+export const dynamic = 'force-dynamic';
+
 const DUMMY_TURFS = [
   { id: 'turf-green-arena', name: 'Green Valley Turf', location: '123 Sports Ave, Downtown', sport: 'Football', hourlyRate: 2000 },
 ];

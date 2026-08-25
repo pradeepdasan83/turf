@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
+// Always read fresh from the DB (never statically cached at build time)
+export const dynamic = 'force-dynamic';
+
 // Dummy fallback roster (used if the DB is unavailable)
 const DUMMY_USERS = [
   { id: 'usr-vijay', name: 'Vijay Verma', email: 'player@turfsplit.com', phone: '9876543212', role: 'PLAYER', upiId: 'vijay@paytm', avatarUrl: null },
