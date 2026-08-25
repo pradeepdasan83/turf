@@ -24,15 +24,15 @@ export default function SettleModal({
   onSuccess,
 }: SettleModalProps) {
   const [marking, setMarking] = useState(false);
-  const [opened, setOpened] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  const hasUpi = !!payeeUpi && payeeUpi.trim().length > 0;
 
   const copyUpi = async () => {
     if (!payeeUpi) return;
     try {
       await navigator.clipboard.writeText(payeeUpi.trim());
     } catch {
-      // Fallback for older browsers
       const t = document.createElement('textarea');
       t.value = payeeUpi.trim();
       document.body.appendChild(t);
@@ -42,33 +42,6 @@ export default function SettleModal({
     }
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-  };
-
-  const note = 'TurfSplit settlement';
-  const hasUpi = !!payeeUpi && payeeUpi.trim().length > 0;
-
-  // Build a UPI intent URL. `scheme` targets Google Pay (tez) or any app (upi).
-  // When includeAmount is false we omit `am` so the user types the amount in the
-  // app — this behaves like paying the contact directly and avoids the lower
-  // "new payee via link" limit some banks apply to amount-prefilled intents.
-  const buildUpiUrl = (scheme: 'tez' | 'upi', includeAmount: boolean) => {
-    const fields: Record<string, string> = {
-      pa: (payeeUpi || '').trim(),
-      pn: payeeName || 'Payee',
-      cu: 'INR',
-    };
-    if (includeAmount) fields.am = amount.toFixed(2);
-    const query = Object.entries(fields)
-      .map(([k, v]) => `${k}=${encodeURIComponent(v)}`)
-      .join('&');
-    return scheme === 'tez' ? `tez://upi/pay?${query}` : `upi://pay?${query}`;
-  };
-
-  const openUpi = (scheme: 'tez' | 'upi', includeAmount = true) => {
-    if (!hasUpi) return;
-    setOpened(true);
-    // Navigating to the UPI scheme hands off to the installed app
-    window.location.href = buildUpiUrl(scheme, includeAmount);
   };
 
   const markSettled = async () => {
@@ -110,57 +83,35 @@ export default function SettleModal({
           <p className="font-label-sm text-label-sm opacity-90">Paying to</p>
           <p className="font-headline-md text-headline-md font-bold">{payeeName}</p>
           <div className="font-display-lg text-display-lg font-extrabold mt-1">₹{amount.toLocaleString()}</div>
-          {hasUpi && (
-            <button
-              onClick={copyUpi}
-              className="mt-2 inline-flex items-center gap-1.5 bg-white/20 hover:bg-white/30 transition-colors rounded-full px-3 py-1 font-label-sm text-label-sm"
-            >
-              <span className="material-symbols-outlined text-[16px]">
-                {copied ? 'check' : 'content_copy'}
-              </span>
-              {copied ? 'Copied!' : payeeUpi}
-            </button>
-          )}
         </div>
 
         {hasUpi ? (
           <>
-          <div className="space-y-sm">
-            <button
-              onClick={() => openUpi('tez', true)}
-              className="w-full bg-primary text-on-primary font-label-bold py-md rounded-xl shadow-md hover:bg-primary-fixed-dim transition-all active:scale-95 flex items-center justify-center gap-2 font-bold"
-            >
-              <span className="material-symbols-outlined">account_balance_wallet</span>
-              Pay ₹{amount} with Google Pay
-            </button>
-            <button
-              onClick={() => openUpi('upi', true)}
-              className="w-full bg-surface-container-high text-on-surface font-label-bold py-3 rounded-xl hover:bg-surface-variant transition-all active:scale-95 flex items-center justify-center gap-2"
-            >
-              <span className="material-symbols-outlined text-[20px]">qr_code_2</span>
-              Pay with another UPI app
-            </button>
-
-          </div>
-
-          {/* Most reliable path: copy the UPI ID and pay directly in your UPI app.
-              Works even when in-app deep links are blocked (iOS / bank limits). */}
-          <div className="mt-md pt-md border-t border-outline-variant/30">
-            <button
-              onClick={copyUpi}
-              className="w-full bg-tertiary-container text-on-tertiary-container font-label-bold py-3 rounded-xl hover:brightness-95 transition-all active:scale-95 flex items-center justify-center gap-2 font-bold"
-            >
-              <span className="material-symbols-outlined text-[20px]">
-                {copied ? 'check_circle' : 'content_copy'}
-              </span>
-              {copied ? 'UPI ID copied!' : 'Copy UPI ID & pay in your app'}
-            </button>
+            {/* Copy the UPI ID, then pay in any UPI app */}
+            <div className="bg-surface-container-low rounded-xl border border-outline-variant/30 p-md">
+              <p className="font-label-sm text-label-sm text-on-surface-variant mb-1">Pay to this UPI ID</p>
+              <div className="flex items-center gap-2">
+                <span className="flex-1 min-w-0 truncate font-label-bold text-label-bold text-on-surface">
+                  {payeeUpi}
+                </span>
+                <button
+                  onClick={copyUpi}
+                  className={`shrink-0 flex items-center gap-1 px-4 py-2 rounded-full font-label-bold text-label-bold transition-all active:scale-95 ${
+                    copied
+                      ? 'bg-primary-container text-on-primary-container'
+                      : 'bg-primary text-on-primary hover:bg-primary-fixed-dim'
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-[18px]">
+                    {copied ? 'check' : 'content_copy'}
+                  </span>
+                  {copied ? 'Copied' : 'Copy'}
+                </button>
+              </div>
+            </div>
             <p className="text-[11px] text-on-surface-variant text-center mt-2 leading-snug">
-              Payment blocked with a &quot;bank limit&quot; error? That&apos;s your bank&apos;s daily
-              UPI limit (hits even ₹1). Copy the UPI ID above and pay directly in GPay/PhonePe,
-              or try again later.
+              Open GPay / PhonePe / any UPI app, pay ₹{amount} to this ID, then tap below.
             </p>
-          </div>
           </>
         ) : (
           <div className="bg-error-container text-on-error-container rounded-xl p-md flex items-start gap-2 text-label-sm font-label-bold">
@@ -169,11 +120,8 @@ export default function SettleModal({
           </div>
         )}
 
-        {/* Confirm settlement — UPI apps can't notify the web, so confirm manually */}
+        {/* Confirm settlement */}
         <div className="mt-md pt-md border-t border-outline-variant/30">
-          <p className="font-label-sm text-label-sm text-on-surface-variant text-center mb-sm">
-            {opened ? 'Finished paying in your UPI app?' : 'Already paid, or paying by cash?'}
-          </p>
           <button
             onClick={markSettled}
             disabled={marking}
