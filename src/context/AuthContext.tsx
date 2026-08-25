@@ -15,8 +15,6 @@ export interface UserSession {
 interface AuthContextType {
   user: UserSession | null;
   loading: boolean;
-  sendOtp: (phone: string) => Promise<{ success: boolean; message?: string; error?: string }>;
-  verifyOtp: (phone: string, otp: string) => Promise<{ success: boolean; error?: string }>;
   loginWithEmail: (email: string, pass?: string) => Promise<{ success: boolean; error?: string }>;
   signup: (data: any) => Promise<{ success: boolean; error?: string }>;
   updateProfile: (
@@ -28,8 +26,6 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
-  sendOtp: async () => ({ success: false }),
-  verifyOtp: async () => ({ success: false }),
   loginWithEmail: async () => ({ success: false }),
   signup: async () => ({ success: false }),
   updateProfile: async () => ({ success: false }),
@@ -62,45 +58,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const sendOtp = async (phone: string) => {
-    try {
-      const res = await fetch('/api/auth/send-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone }),
-      });
-      return await res.json();
-    } catch (e) {
-      console.error('sendOtp error:', e);
-      return { success: false, message: 'Failed to send OTP' };
-    }
-  };
-
-  const verifyOtp = async (phone: string, otp: string) => {
-    try {
-      const res = await fetch('/api/auth/verify-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone, otp }),
-      });
-      const data = await res.json();
-      if (data.success && data.user) {
-        saveSession(data.user);
-        return { success: true };
-      }
-      return { success: false, error: data.error || 'Invalid OTP' };
-    } catch (e) {
-      console.error('verifyOtp error:', e);
-      return { success: false, error: 'Connection error. Please try again.' };
-    }
-  };
-
   const loginWithEmail = async (email: string, password?: string) => {
     try {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password: password || 'admin123' }),
+        body: JSON.stringify({ email, password: password || '' }),
       });
       const data = await res.json();
       if (data.success && data.user) {
@@ -187,8 +150,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       value={{
         user,
         loading,
-        sendOtp,
-        verifyOtp,
         loginWithEmail,
         signup,
         updateProfile,

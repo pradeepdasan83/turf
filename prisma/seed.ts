@@ -7,7 +7,6 @@ const prisma = new PrismaClient();
 // real accounts are created via phone OTP / email signup.
 async function main() {
   console.log('Clearing database…');
-  await prisma.otpCode.deleteMany();
   await prisma.notification.deleteMany();
   await prisma.ledgerEntry.deleteMany();
   await prisma.gamePlayer.deleteMany();

@@ -122,13 +122,3 @@ model Notification {
 
   user      User     @relation(fields: [userId], references: [id])
 }
-
-// One active OTP per phone number (serverless-safe, DB-backed)
-model OtpCode {
-  id        String   @id @default(uuid())
-  phone     String   @unique
-  code      String
-  attempts  Int      @default(0)
-  expiresAt DateTime
-  createdAt DateTime @default(now())
-}

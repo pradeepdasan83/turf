@@ -24,7 +24,7 @@ export default function Header({
   const isOrganizerUser = user?.role === 'ORGANIZER' || user?.role === 'BOTH';
 
   return (
-    <header className="fixed top-0 left-0 w-full z-50 bg-surface/90 backdrop-blur-md border-b border-outline-variant/20 shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
+    <header className="fixed top-0 left-0 w-full z-50 bg-surface/90 backdrop-blur-md border-b border-outline-variant/20 shadow-[0_2px_12px_rgba(0,0,0,0.04)] pt-[env(safe-area-inset-top)]">
       <div className="flex justify-between items-center w-full px-4 md:px-8 h-16 max-w-7xl mx-auto">
         {/* Left: Branding & User Info */}
         <div className="flex items-center gap-3">

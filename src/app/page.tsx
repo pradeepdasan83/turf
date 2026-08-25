@@ -283,7 +283,7 @@ function TurfSplitApp() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-on-background pb-24 md:pb-8 pt-16 relative">
+    <div className="min-h-screen bg-background text-on-background pb-24 md:pb-8 pt-[calc(4rem+env(safe-area-inset-top))] relative">
       {/* Toast Notification Overlay */}
       {toastMessage && (
         <div className="fixed top-20 right-4 z-50 bg-inverse-surface text-inverse-on-surface px-4 py-3 rounded-xl shadow-xl font-label-bold text-sm flex items-center gap-2 animate-bounce">

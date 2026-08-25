@@ -98,7 +98,7 @@ export default function GameDetailsModal({
   return (
     <div className="fixed inset-0 z-50 bg-background/95 backdrop-blur-md flex flex-col">
       {/* Top App Bar */}
-      <header className="shrink-0 bg-surface/80 backdrop-blur-xl border-b border-outline-variant/30 z-40">
+      <header className="shrink-0 bg-surface/80 backdrop-blur-xl border-b border-outline-variant/30 z-40 pt-[env(safe-area-inset-top)]">
         <div className="flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop h-16 max-w-4xl mx-auto">
           <div className="flex items-center gap-2">
             <button
