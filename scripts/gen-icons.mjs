@@ -3,10 +3,10 @@ import path from 'path';
 import sharp from 'sharp';
 
 // Source priority: your real artwork (drop it here) > the vector fallback.
-const REAL = 'public/branding/turf-gilt.png';
+const CANDIDATES = ['public/branding/app-icon.png', 'public/branding/turf-gilt.png'];
 const SVG = 'public/branding/icon.svg';
-const source = fs.existsSync(REAL) ? REAL : SVG;
-const BG = '#0a1626'; // matches the icon background (for opaque apple icon / maskable)
+const source = CANDIDATES.find((p) => fs.existsSync(p)) || SVG;
+const BG = '#0b2b1a'; // dark green to match the TurfSplit icon background
 
 const outDir = 'public/icons';
 fs.mkdirSync(outDir, { recursive: true });
@@ -23,25 +23,28 @@ async function plain(size, file) {
   console.log('✓', file, `${size}x${size}`);
 }
 
-// Maskable / apple icons: place the art on an opaque background with a safe margin
-async function padded(size, file, marginPct) {
-  const inner = Math.round(size * (1 - marginPct * 2));
-  const art = await load(inner).png().toBuffer();
-  await sharp({
-    create: { width: size, height: size, channels: 4, background: BG },
-  })
+// Full-bleed variant for platform crops (maskable/apple): trim the surrounding
+// white margin so the green tile reaches the edges, then cover-fill on BG.
+async function bleed(size, file) {
+  let img = sharp(source, source.endsWith('.svg') ? { density: Math.max(1024, size) } : {});
+  if (!source.endsWith('.svg')) {
+    // Remove the white border around the rounded tile
+    img = img.trim({ background: '#ffffff', threshold: 20 });
+  }
+  const art = await img.resize(size, size, { fit: 'cover' }).png().toBuffer();
+  await sharp({ create: { width: size, height: size, channels: 4, background: BG } })
     .composite([{ input: art, gravity: 'center' }])
     .png()
     .toFile(path.join(outDir, file));
-  console.log('✓', file, `${size}x${size} (maskable-safe)`);
+  console.log('✓', file, `${size}x${size} (full-bleed)`);
 }
 
 console.log('Source:', source);
 await plain(192, 'icon-192.png');
 await plain(512, 'icon-512.png');
 await plain(32, 'favicon-32.png');
-await padded(512, 'icon-maskable-512.png', 0.12); // >=10% safe zone for maskable
-await padded(180, 'apple-touch-icon.png', 0.08); // iOS rounds corners itself
+await bleed(512, 'icon-maskable-512.png'); // Android masks to circle/squircle
+await bleed(180, 'apple-touch-icon.png'); // iOS rounds corners itself
 
 // Next.js App Router favicon convention
 await load(64).png().toFile('src/app/icon.png');

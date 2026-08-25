@@ -1,13 +1,13 @@
 {
-  "name": "TurfGilt — Turf Booking & Split",
-  "short_name": "TurfGilt",
+  "name": "TurfSplit — Turf Booking & Split",
+  "short_name": "TurfSplit",
   "description": "Book turf slots, split costs with players, and settle payments — the smart way to run your games.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#0a1626",
-  "theme_color": "#0a1626",
+  "background_color": "#0b2b1a",
+  "theme_color": "#0b2b1a",
   "categories": ["sports", "lifestyle", "finance"],
   "icons": [
     { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },

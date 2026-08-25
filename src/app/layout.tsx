@@ -4,14 +4,14 @@ import { AuthProvider } from '@/context/AuthContext';
 import RegisterSW from '@/components/pwa/RegisterSW';
 
 export const metadata: Metadata = {
-  applicationName: 'TurfGilt',
-  title: 'TurfGilt — Turf Booking & Split',
+  applicationName: 'TurfSplit',
+  title: 'TurfSplit — Turf Booking & Split',
   description: 'Book turf slots, split costs with players, and settle payments — the smart way to run your games.',
   manifest: '/manifest.webmanifest',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'TurfGilt',
+    title: 'TurfSplit',
   },
   icons: {
     icon: [
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#0a1626',
+  themeColor: '#0b2b1a',
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
