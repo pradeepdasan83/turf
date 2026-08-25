@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { getGameState } from '@/lib/game-status';
+import Avatar from '@/components/ui/Avatar';
 
 interface GameDetailsModalProps {
   game: any;
@@ -294,13 +295,7 @@ export default function GameDetailsModal({
                       className="flex items-center justify-between bg-surface rounded-lg px-3 py-2 border border-outline-variant/30"
                     >
                       <div className="flex items-center gap-sm min-w-0">
-                        {u.avatarUrl ? (
-                          <img className="w-9 h-9 rounded-full object-cover" alt={u.name} src={u.avatarUrl} />
-                        ) : (
-                          <div className="w-9 h-9 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant font-label-bold text-xs">
-                            {u.name?.substring(0, 2).toUpperCase()}
-                          </div>
-                        )}
+                        <Avatar name={u.name} seed={u.id} size={36} />
                         <div className="flex flex-col min-w-0">
                           <span className="font-label-bold text-label-bold text-on-background truncate">
                             {u.name}
@@ -335,17 +330,7 @@ export default function GameDetailsModal({
                   className="flex items-center justify-between p-md hover:bg-surface-variant/20 transition-colors"
                 >
                   <div className="flex items-center gap-sm">
-                    {userObj.avatarUrl ? (
-                      <img
-                        className="w-11 h-11 rounded-full object-cover border-2 border-surface"
-                        alt={userObj.name}
-                        src={userObj.avatarUrl}
-                      />
-                    ) : (
-                      <div className="w-11 h-11 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant font-label-bold border-2 border-surface">
-                        {userObj.name ? userObj.name.substring(0, 2).toUpperCase() : 'PL'}
-                      </div>
-                    )}
+                    <Avatar name={userObj.name} seed={p.userId} size={44} className="border-2 border-surface" />
                     <div className="flex flex-col">
                       <span className="font-label-bold text-label-bold text-on-background font-semibold">
                         {userObj.name || 'Player'}
