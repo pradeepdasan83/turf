@@ -9,7 +9,7 @@ import OrganizerDashboard from '@/components/dashboard/OrganizerDashboard';
 import GameDetailsModal from '@/components/games/GameDetailsModal';
 import CreateGameModal from '@/components/games/CreateGameModal';
 import PaymentsView from '@/components/payments/PaymentsView';
-import RazorpayModal from '@/components/payments/RazorpayModal';
+import SettleModal from '@/components/payments/SettleModal';
 import NotificationsModal from '@/components/notifications/NotificationsModal';
 import LoginPage from '@/components/auth/LoginPage';
 import ProfileView from '@/components/profile/ProfileView';
@@ -38,7 +38,10 @@ function TurfSplitApp() {
   const [payingState, setPayingState] = useState<{
     amount: number;
     payeeName: string;
+    payeeUpi?: string;
     ledgerId?: string;
+    gameId?: string;
+    fromUserId?: string;
   } | null>(null);
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -273,12 +276,17 @@ function TurfSplitApp() {
     }
   };
 
-  const handleStartSettle = (ledgerId: string, amount: number, payeeName: string) => {
-    setPayingState({ ledgerId, amount, payeeName });
+  const handleStartSettle = (
+    ledgerId: string,
+    amount: number,
+    payeeName: string,
+    payeeUpi?: string,
+  ) => {
+    setPayingState({ ledgerId, amount, payeeName, payeeUpi });
   };
 
   const handlePaymentSuccess = () => {
-    showToast(`Payment of ₹${payingState?.amount} settled via Razorpay!`);
+    showToast(`Payment of ₹${payingState?.amount} settled!`);
     loadData();
   };
 
@@ -352,7 +360,15 @@ function TurfSplitApp() {
         <GameDetailsModal
           game={selectedGame}
           onClose={() => setSelectedGameId(null)}
-          onPayShare={(amount) => handleStartSettle('', amount, selectedGame.organizer?.name || 'Organizer')}
+          onPayShare={(amount, gameId) =>
+            setPayingState({
+              amount,
+              payeeName: selectedGame.organizer?.name || 'Organizer',
+              payeeUpi: selectedGame.organizer?.upiId,
+              gameId,
+              fromUserId: user.id,
+            })
+          }
           onJoinGame={handleJoinGame}
           onLeaveGame={handleLeaveGame}
           onRescheduleGame={isOrganizerUser ? handleRescheduleGame : undefined}
@@ -377,10 +393,13 @@ function TurfSplitApp() {
       )}
 
       {payingState && (
-        <RazorpayModal
+        <SettleModal
           amount={payingState.amount}
           payeeName={payingState.payeeName}
+          payeeUpi={payingState.payeeUpi}
           ledgerId={payingState.ledgerId}
+          gameId={payingState.gameId}
+          fromUserId={payingState.fromUserId}
           onClose={() => setPayingState(null)}
           onSuccess={handlePaymentSuccess}
         />

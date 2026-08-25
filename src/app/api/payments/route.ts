@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { createPaymentOrder, verifyPaymentSignature } from '@/lib/razorpay';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
   try {
@@ -66,69 +67,55 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { action, ledgerId, amount, razorpayPaymentId, razorpayOrderId, razorpaySignature, targetUserId } = body;
+    const { action, ledgerId, gameId, fromUserId, amount, targetUserId } = body;
 
-    // Action 1: Create Payment Order
-    if (action === 'create-order') {
-      const order = await createPaymentOrder({
-        amount: parseFloat(amount),
-        receipt: `rcpt_${ledgerId || Date.now()}`,
-        notes: { ledgerId: ledgerId || '' },
-      });
-
-      return NextResponse.json({ success: true, order });
-    }
-
-    // Action 2: Verify & Settle Ledger
-    if (action === 'verify-payment') {
-      const isValid = verifyPaymentSignature(razorpayOrderId, razorpayPaymentId, razorpaySignature);
-
-      if (!isValid) {
-        return NextResponse.json({ success: false, error: 'Invalid payment signature' }, { status: 400 });
+    // Mark a debt as settled (after the payer completes a UPI transfer).
+    // Accepts a ledgerId, or a gameId + fromUserId to locate the pending entry.
+    if (action === 'settle') {
+      let ledger = null;
+      if (ledgerId) {
+        ledger = await prisma.ledgerEntry.findUnique({ where: { id: ledgerId } });
+      } else if (gameId && fromUserId) {
+        ledger = await prisma.ledgerEntry.findFirst({
+          where: { gameId, fromUserId, status: 'PENDING' },
+        });
       }
 
-      if (ledgerId) {
-        const ledger = await prisma.ledgerEntry.findUnique({
-          where: { id: ledgerId },
+      if (ledger) {
+        await prisma.ledgerEntry.update({
+          where: { id: ledger.id },
+          data: { status: 'COMPLETED' },
         });
-
-        if (ledger) {
-          // Mark ledger as completed
-          await prisma.ledgerEntry.update({
-            where: { id: ledgerId },
-            data: {
-              status: 'COMPLETED',
-              razorpayPaymentId,
-            },
-          });
-
-          // Update GamePlayer paymentStatus to PAID
-          if (ledger.gameId) {
-            await prisma.gamePlayer.updateMany({
-              where: {
-                gameId: ledger.gameId,
-                userId: ledger.fromUserId,
-              },
-              data: { paymentStatus: 'PAID' },
-            });
-          }
-
-          // Create notification for payee
-          await prisma.notification.create({
-            data: {
-              userId: ledger.toUserId,
-              title: 'Payment Received',
-              message: `Received ₹${ledger.amount} for ${ledger.description}`,
-              type: 'PAYMENT_RECEIVED',
-            },
+        if (ledger.gameId) {
+          await prisma.gamePlayer.updateMany({
+            where: { gameId: ledger.gameId, userId: ledger.fromUserId },
+            data: { paymentStatus: 'PAID' },
           });
         }
+        await prisma.notification.create({
+          data: {
+            userId: ledger.toUserId,
+            title: 'Payment Received',
+            message: `Received ₹${ledger.amount} for ${ledger.description}`,
+            type: 'PAYMENT_RECEIVED',
+          },
+        });
+        return NextResponse.json({ success: true, message: 'Payment marked as settled!' });
       }
 
-      return NextResponse.json({ success: true, message: 'Payment settled successfully!' });
+      // No ledger row (e.g. direct game-share payment) — just mark the player paid
+      if (gameId && fromUserId) {
+        await prisma.gamePlayer.updateMany({
+          where: { gameId, userId: fromUserId },
+          data: { paymentStatus: 'PAID' },
+        });
+        return NextResponse.json({ success: true, message: 'Payment marked as settled!' });
+      }
+
+      return NextResponse.json({ success: false, error: 'Nothing to settle' }, { status: 400 });
     }
 
-    // Action 3: Send Reminder
+    // Send Reminder
     if (action === 'send-reminder') {
       if (targetUserId) {
         await prisma.notification.create({

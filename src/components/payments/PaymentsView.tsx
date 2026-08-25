@@ -12,7 +12,7 @@ interface PaymentsViewProps {
   toReceive?: any[];
   toPay?: any[];
   history?: any[];
-  onSettlePayment: (ledgerId: string, amount: number, payeeName: string) => void;
+  onSettlePayment: (ledgerId: string, amount: number, payeeName: string, payeeUpi?: string) => void;
   onSendReminder: (targetUserId: string, amount: number, payeeName: string) => void;
 }
 
@@ -148,7 +148,7 @@ export default function PaymentsView({
                       </div>
                     </div>
                     <button
-                      onClick={() => onSettlePayment(item.id, item.amount, u.name)}
+                      onClick={() => onSettlePayment(item.id, item.amount, u.name, u.upiId)}
                       className="px-4 py-2 rounded-full bg-secondary text-on-secondary font-label-bold text-label-bold hover:bg-secondary/90 transition-colors active:scale-95 shadow-sm font-bold"
                     >
                       Settle
