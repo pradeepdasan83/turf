@@ -209,7 +209,7 @@ export default function CreateGameModal({ onClose, onGameCreated, organizerId }:
 
             {!showAddTurf ? (
               <select value={turfId} onChange={(e) => setTurfId(e.target.value)} className={inputCls}>
-                {turfs.length === 0 && <option value="">Loading turfs…</option>}
+                {turfs.length === 0 && <option value="">No turfs yet — tap “Add your own”</option>}
                 {turfs.map((t) => (
                   <option key={t.id} value={t.id}>
                     {t.name}

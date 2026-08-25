@@ -3,17 +3,13 @@ import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
-const DUMMY_TURFS = [
-  { id: 'turf-green-arena', name: 'Green Valley Turf', location: '123 Sports Ave, Downtown', sport: 'Football', hourlyRate: 2000 },
-];
-
 export async function GET() {
   try {
     const turfs = await prisma.turf.findMany({ orderBy: { createdAt: 'desc' } });
-    return NextResponse.json({ success: true, turfs: turfs.length ? turfs : DUMMY_TURFS });
+    return NextResponse.json({ success: true, turfs });
   } catch (error) {
-    console.warn('Turfs list DB fallback triggered:', error);
-    return NextResponse.json({ success: true, turfs: DUMMY_TURFS });
+    console.error('Turfs list error:', error);
+    return NextResponse.json({ success: true, turfs: [] });
   }
 }
 
