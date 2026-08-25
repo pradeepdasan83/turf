@@ -26,21 +26,24 @@ export default function SettleModal({
   const [marking, setMarking] = useState(false);
   const [opened, setOpened] = useState(false);
 
-  const note = `TurfSplit settlement`;
+  const note = 'TurfSplit settlement';
   const hasUpi = !!payeeUpi && payeeUpi.trim().length > 0;
 
-  // Build a UPI intent URL. `scheme` lets us target Google Pay (tez) or any app (upi).
+  // Build a UPI intent URL. `scheme` targets Google Pay (tez) or any app (upi).
+  // Amount must be a 2-decimal string per the UPI spec; encode each value with
+  // encodeURIComponent so spaces become %20 (not "+") which some banks reject.
   const buildUpiUrl = (scheme: 'tez' | 'upi') => {
-    const params = new URLSearchParams({
+    const fields: Record<string, string> = {
       pa: (payeeUpi || '').trim(),
       pn: payeeName || 'Payee',
-      am: String(amount),
+      am: amount.toFixed(2),
       cu: 'INR',
       tn: note,
-    });
-    return scheme === 'tez'
-      ? `tez://upi/pay?${params.toString()}`
-      : `upi://pay?${params.toString()}`;
+    };
+    const query = Object.entries(fields)
+      .map(([k, v]) => `${k}=${encodeURIComponent(v)}`)
+      .join('&');
+    return scheme === 'tez' ? `tez://upi/pay?${query}` : `upi://pay?${query}`;
   };
 
   const openUpi = (scheme: 'tez' | 'upi') => {
