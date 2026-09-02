@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { hashPassword, verifyPassword } from '@/lib/password';
 
 // PATCH: update profile fields and/or change password
 export async function PATCH(request: Request, { params }: { params: { id: string } }) {
@@ -21,7 +22,8 @@ export async function PATCH(request: Request, { params }: { params: { id: string
 
     // Password change flow (requires the current password to match)
     if (newPassword) {
-      if (!currentPassword || currentPassword !== user.password) {
+      const currentOk = await verifyPassword(String(currentPassword || ''), user.password);
+      if (!currentOk) {
         return NextResponse.json(
           { success: false, error: 'Current password is incorrect' },
           { status: 400 }
@@ -33,7 +35,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
           { status: 400 }
         );
       }
-      data.password = String(newPassword);
+      data.password = await hashPassword(String(newPassword));
     }
 
     const updated = await prisma.user.update({

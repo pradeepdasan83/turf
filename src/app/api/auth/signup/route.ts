@@ -1,13 +1,20 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { hashPassword } from '@/lib/password';
 
 export async function POST(request: Request) {
   try {
-    const { name, phone, email, role = 'PLAYER', upiId, password = 'password123' } = await request.json();
+    const { name, phone, email, role = 'PLAYER', upiId, password } = await request.json();
 
     if (!name || (!phone && !email)) {
       return NextResponse.json(
         { success: false, error: 'Name and either Phone or Email are required' },
+        { status: 400 }
+      );
+    }
+    if (!password || String(password).length < 4) {
+      return NextResponse.json(
+        { success: false, error: 'Password must be at least 4 characters' },
         { status: 400 }
       );
     }
@@ -34,7 +41,7 @@ export async function POST(request: Request) {
         name,
         phone: cleanPhone,
         email: email || `${cleanPhone}@turfsplit.local`,
-        password,
+        password: await hashPassword(password),
         role,
         upiId,
       },
