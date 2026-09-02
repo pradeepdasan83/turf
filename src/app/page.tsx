@@ -89,6 +89,31 @@ function TurfSplitApp() {
     loadData();
   }, [user]);
 
+  // Live updates: poll in the background so changes made by anyone (a new game,
+  // someone joining, a settlement) appear on every device without a manual refresh.
+  // Polling pauses when the tab is hidden and refetches instantly on focus.
+  useEffect(() => {
+    if (!user) return;
+    const POLL_MS = 10000;
+    const refresh = () => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        loadData();
+      }
+    };
+    const timer = setInterval(refresh, POLL_MS);
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') loadData();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener('focus', onVisible);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('focus', onVisible);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+
   // If loading session, show clean loading spinner
   if (loading) {
     return (
