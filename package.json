@@ -10,6 +10,7 @@
     "postinstall": "prisma generate",
     "db:push": "prisma db push",
     "db:reset": "tsx prisma/seed.ts",
+    "db:secure": "node prisma/security/apply-rls.mjs",
     "icons": "node scripts/gen-icons.mjs"
   },
   "prisma": {
